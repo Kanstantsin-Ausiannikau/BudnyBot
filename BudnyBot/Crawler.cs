@@ -39,9 +39,10 @@ namespace BudnyBot
             var scan1 = await GetLevelLinks(items, "h2.edn_articleTitle>a");
             var scan2 = await GetLevelLinks(items, "a.page");
 
-            //items[0].Items = new CrawlerItemCollection();
-            //items[0].Items.AddRange(scan1[0].Items);
-            //items[0].Items.AddRange(scan2[0].Items);
+            //var scan3 = await GetLevelLinks(items[0].Items, "h2.edn_articleTitle>a");
+            //var scan4 = await GetLevelLinks(items[0].Items, "a.page");
+
+            var scan5 = await GetLevelLinks(items[0].Items, "a");
 
             return items;
         }
@@ -55,7 +56,10 @@ namespace BudnyBot
 
             for(int i=0;i<items.Count;i++)
             {
-                items[i].Items = new CrawlerItemCollection();
+                if (items[i].Items == null)
+                {
+                    items[i].Items = new CrawlerItemCollection();
+                }
                 var config = Configuration.Default.WithDefaultLoader();
                 var document = await BrowsingContext.New(config).OpenAsync(items[i].Url);
                 var hrefs = document.QuerySelectorAll(selector);

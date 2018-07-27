@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using AngleSharp;
@@ -16,9 +17,11 @@ namespace BudnyBot
 
         int _deepLevwl;
 
+        string _domainName;
+
         CrawlerItemCollection _items;
 
-        public Crawler(string startUrl, int deepLevel = 1)
+        public Crawler(string startUrl, int deepLevel = 1, string domainName = "budny.by")
         {
             if (string.IsNullOrEmpty(startUrl)||deepLevel<1)
             {
@@ -27,49 +30,67 @@ namespace BudnyBot
 
             _startUrl = startUrl;
             _deepLevwl = deepLevel;
+            _domainName = domainName;
+
             _items = new CrawlerItemCollection();
         }
 
-        public async Task<CrawlerItemCollection> GetCrawlerResults(CrawlerItemCollection items, string link, int deepLevel)
-        {
-            items = new CrawlerItemCollection();
-
-            items.Add(new CrawlerItem("Справочник ссузов", link));
-
-            var scan1 = await GetLevelLinks(items, "h2.edn_articleTitle>a");
-            var scan2 = await GetLevelLinks(items, "a.page");
-
-            //var scan3 = await GetLevelLinks(items[0].Items, "h2.edn_articleTitle>a");
-            //var scan4 = await GetLevelLinks(items[0].Items, "a.page");
-
-            var scan5 = await GetLevelLinks(items[0].Items, "a");
-
-            return items;
-        }
-
-        public async Task<CrawlerItemCollection> GetLevelLinks(CrawlerItemCollection items, string selector)
+        public async Task<CrawlerItemCollection> GetLevelLinks(CrawlerItemCollection items, string selector, bool onlyExternalLinks)
         {
             if (items == null)
             {
                 return null;
             }
 
-            for(int i=0;i<items.Count;i++)
-            {
-                if (items[i].Items == null)
-                {
-                    items[i].Items = new CrawlerItemCollection();
-                }
-                var config = Configuration.Default.WithDefaultLoader();
-                var document = await BrowsingContext.New(config).OpenAsync(items[i].Url);
-                var hrefs = document.QuerySelectorAll(selector);
+            CrawlerItemCollection collection = new CrawlerItemCollection();
 
-                foreach (var element in hrefs)
+            //List<CrawlerItem> links = new List<CrawlerItem>();
+
+            for (int i = 0; i < items.Count; i++)
+            {
+                while (UrlLoader.State != UrlLoaderState.YES)
                 {
-                    items[i].Items.Add(new CrawlerItem(element.TextContent, element.GetAttribute("href")));
+                    Thread.Sleep(500);
+
+
+
+                    //links.AddRange(linkRange);
+
                 }
+
+                collection = await UrlLoader.LoadUrlsFromPage(items[i].Url, selector);
+
+                Debug.Write("Ok");
+
+                //var config = Configuration.Default.WithDefaultLoader();
+                //var document = await BrowsingContext.New(config).OpenAsync(items[i].Url);
+                //var hrefs = document.QuerySelectorAll(selector);
+
+                //    foreach (var item in hrefs)
+                //    {
+                //        if (onlyExternalLinks)
+                //        {
+                //            if (IsExternal(item.GetAttribute("href")))
+                //            {
+                //                collection.Add(new CrawlerItem(item.TextContent, item.GetAttribute("href")));
+                //            }
+                //        }
+                //        else
+                //        {
+                //            collection.Add(new CrawlerItem(item.TextContent, item.GetAttribute("href")));
+                //        }
+                //    }
+                //}
+                //return collection;
+
+
             }
-            return items;
+            return collection;
+        }
+
+        private bool IsExternal(string link)
+        {
+            return link.IndexOf(_domainName) == 0;
         }
     }
 }

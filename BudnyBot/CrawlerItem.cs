@@ -8,7 +8,6 @@ namespace BudnyBot
 {
     class CrawlerItem
     {
-        CrawlerItemCollection _items;
 
         public string Url
         {
@@ -22,16 +21,17 @@ namespace BudnyBot
             set;
         }
 
-        public CrawlerItemCollection Items
+        public bool IsNewItem
         {
-            get { return _items; }
-            set { _items = value; }
+            get;
+            set;
         }
 
         public CrawlerItem(string title, string url)
         {
-            this.Url = url;
-            this.Title = title;
+            Url = url;
+            Title = title;
+            IsNewItem = true;
         }
     }
 }

@@ -31,43 +31,50 @@ namespace BudnyBot
 
             Crawler crawler = new Crawler(startUrl);
 
-            var task = await crawler.GetCrawlerResults(null, @"http://budny.by/abiturient/ssuzspravochnik", 10);
+            CrawlerItemCollection items = new CrawlerItemCollection();
 
-            for(int i = 0;i<task.Count;i++)
+            items.Add(new CrawlerItem("Справочник ссузов", @"http://budny.by/abiturient/ssuzspravochnik"));
+
+            var task = await crawler.GetLevelLinks(items, "h2.edn_articleTitle>a", false);
+            task.AddRange(await crawler.GetLevelLinks(items, "a.page", false));
+
+            DrawTree(task);
+
+            var task1 = await crawler.GetLevelLinks(task, "h2.edn_articleTitle>a", false);
+            task1.AddRange(await crawler.GetLevelLinks(task, "a.page", false));
+
+            DrawTree(task1);
+        }
+
+        private void DrawTree(CrawlerItemCollection task1)
+        {
+            treeMain.Items.Clear();
+
+            for (int i = 0; i < task1.Count; i++)
             {
-                if (!string.IsNullOrEmpty(task[i].Title))
+                if (!string.IsNullOrEmpty(task1[i].Title))
                 {
                     TreeViewItem node = new TreeViewItem();
-                    node.Header = task[i].Title;
+                    node.Header = task1[i].Title;
                     treeMain.Items.Add(node);
-
-                    AddItemsToNode(node, task[i]);
-
-                    //if (task[i].Items!=null)
-                    //{
-                    //    for (int j = 0; j < task[i].Items.Count; j++)
-                    //    {
-                    //        node.Items.Add(new TreeViewItem() { Header = task[i].Items[j].Title });
-                    //    }
-                    //}
                 }
             }
         }
 
-        private void AddItemsToNode(TreeViewItem node, CrawlerItem item)
-        {
-            if (item.Items!=null)
-            {
-                for (int j = 0; j < item.Items.Count; j++)
-                {
-                    TreeViewItem childNode = new TreeViewItem() { Header = item.Items[j].Title };
-                    node.Items.Add(childNode);
-                    if (item.Items[j].Items!=null)
-                    {
-                        AddItemsToNode(childNode, item.Items[j]);
-                    }
-                }
-            }
-        }
+        //private void AddItemsToNode(TreeViewItem node, CrawlerItem item)
+        //{
+        //    if (item.Items!=null)
+        //    {
+        //        for (int j = 0; j < item.Items.Count; j++)
+        //        {
+        //            TreeViewItem childNode = new TreeViewItem() { Header = item.Items[j].Title };
+        //            node.Items.Add(childNode);
+        //            if (item.Items[j].Items!=null)
+        //            {
+        //                AddItemsToNode(childNode, item.Items[j]);
+        //            }
+        //        }
+        //    }
+        //}
     }
 }

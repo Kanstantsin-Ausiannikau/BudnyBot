@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,7 +27,7 @@ namespace BudnyBot
             InitializeComponent();
         }
 
-        private async void btnSearch_Click(object sender, RoutedEventArgs e)
+        private  async void  btnSearch_Click(object sender, RoutedEventArgs e)
         {
             string startUrl = txtStartUrl.Text;
 
@@ -35,15 +37,29 @@ namespace BudnyBot
 
             items.Add(new CrawlerItem("Справочник ссузов", @"http://budny.by/abiturient/ssuzspravochnik"));
 
-            var task = await crawler.GetLevelLinks(items, "h2.edn_articleTitle>a", false);
-            task.AddRange(await crawler.GetLevelLinks(items, "a.page", false));
+            items = await crawler.GetLinks(items, 0, "a.page", false, false);
+            items = await crawler.GetLinks(items, 0 , "h2.edn_articleTitle>a", false, false);
 
-            DrawTree(task);
+            for(int i=0;i<items.Count;i++)
+            {
+                DrawTree(items);
 
-            var task1 = await crawler.GetLevelLinks(task, "h2.edn_articleTitle>a", false);
-            task1.AddRange(await crawler.GetLevelLinks(task, "a.page", false));
+                items = await crawler.GetLinks(items, i, "a.page", false, false);
+                items = await crawler.GetLinks(items, i, "h2.edn_articleTitle>a", false, true);
+            }
 
-            DrawTree(task1);
+            Debug.WriteLine("End");
+
+            DrawTree(items);
+
+
+            //for (int i=0;i<items.Count;i++)
+            //{
+            //    if (UrlLoader.State==UrlLoaderState.YES)
+            //    {
+            //        crawler.GetLevelLinks(items, "h2.edn_articleTitle>a", false);
+            //    }
+            //}
         }
 
         private void DrawTree(CrawlerItemCollection task1)

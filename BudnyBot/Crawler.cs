@@ -35,58 +35,31 @@ namespace BudnyBot
             _items = new CrawlerItemCollection();
         }
 
-        public async Task<CrawlerItemCollection> GetLevelLinks(CrawlerItemCollection items, string selector, bool onlyExternalLinks)
+        public async Task<CrawlerItemCollection> GetLinks(CrawlerItemCollection items, int nodeIndex, string selector, bool onlyExternalLinks, bool checkOldLink)
         {
+            if (items == null||items[nodeIndex].IsNewItem ==false)
+            {
+                return items;
+            }
+
+
             if (items == null)
             {
-                return null;
+                items = new CrawlerItemCollection();
             }
+
 
             CrawlerItemCollection collection = new CrawlerItemCollection();
 
-            //List<CrawlerItem> links = new List<CrawlerItem>();
+            collection = await new UrlLoader(items[nodeIndex].Url, selector).Load();
 
-            for (int i = 0; i < items.Count; i++)
-            {
-                while (UrlLoader.State != UrlLoaderState.YES)
-                {
-                    Thread.Sleep(500);
+            items[nodeIndex].IsNewItem = !checkOldLink;
 
+            items.AddRange(collection, nodeIndex+1);
 
-
-                    //links.AddRange(linkRange);
-
-                }
-
-                collection = await UrlLoader.LoadUrlsFromPage(items[i].Url, selector);
-
-                Debug.Write("Ok");
-
-                //var config = Configuration.Default.WithDefaultLoader();
-                //var document = await BrowsingContext.New(config).OpenAsync(items[i].Url);
-                //var hrefs = document.QuerySelectorAll(selector);
-
-                //    foreach (var item in hrefs)
-                //    {
-                //        if (onlyExternalLinks)
-                //        {
-                //            if (IsExternal(item.GetAttribute("href")))
-                //            {
-                //                collection.Add(new CrawlerItem(item.TextContent, item.GetAttribute("href")));
-                //            }
-                //        }
-                //        else
-                //        {
-                //            collection.Add(new CrawlerItem(item.TextContent, item.GetAttribute("href")));
-                //        }
-                //    }
-                //}
-                //return collection;
-
-
-            }
-            return collection;
+            return items;
         }
+
 
         private bool IsExternal(string link)
         {

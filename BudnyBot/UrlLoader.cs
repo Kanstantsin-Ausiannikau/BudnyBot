@@ -12,7 +12,10 @@ namespace BudnyBot
 
     class UrlLoader
     {
-        static int _threadCount;
+        static int _threadCount = 5;
+
+        string _url;
+        string _selector;
 
         public static UrlLoaderState State
         {
@@ -22,29 +25,22 @@ namespace BudnyBot
 
         static UrlLoader()
         {
-            _threadCount = 5;
             State = UrlLoaderState.YES;
         }
 
-        public async static Task<CrawlerItemCollection> LoadUrlsFromPage(string link, string selector)
+        public UrlLoader(string url, string selector)
         {
-            _threadCount--;
+            this._url = url;
+            this._selector = selector;
+        }
 
-            Debug.WriteLine(_threadCount);
-
-            if (_threadCount == 0)
-            {
-                State = UrlLoaderState.NO;
-            }
-
-            CrawlerItemCollection list = new CrawlerItemCollection(); ;
+        public async Task<CrawlerItemCollection> Load()
+        {
+            CrawlerItemCollection list = new CrawlerItemCollection();
 
             var config = Configuration.Default.WithDefaultLoader();
-            var document = await BrowsingContext.New(config).OpenAsync(link);
-            var hrefs = document.QuerySelectorAll(selector);
-
-            _threadCount++;
-            State = UrlLoaderState.YES;
+            var document = await BrowsingContext.New(config).OpenAsync(_url);
+            var hrefs = document.QuerySelectorAll(_selector);
 
             foreach (var item in hrefs)
             {

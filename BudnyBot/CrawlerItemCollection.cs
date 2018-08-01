@@ -20,7 +20,7 @@ namespace BudnyBot
             _list.Add(item);
         }
 
-        public void AddRange(CrawlerItemCollection items)
+        public void AddRange(CrawlerItemCollection items, int index)
         {
             if (items==null)
             {
@@ -31,7 +31,9 @@ namespace BudnyBot
             {
                 if (!IsContains(items[i]))
                 {
-                    _list.Add(items[i]);
+                    //_list.Add(items[i]);
+                    _list.Insert(index, items[i]);
+                    index++;
                 }
             }
         }
